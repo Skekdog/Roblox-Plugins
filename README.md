@@ -21,4 +21,4 @@ A simple multi-line command bar, with support for undo and redo.
 
 Does NOT support syntax highlighting.
 
-PENDING CREATOR STORE APPEAL
+Upload to Creator Store was moderated.
