@@ -88,7 +88,7 @@ local executeButton = Instance.new("TextButton")
 executeButton.BackgroundColor3 = Color3.fromRGB(0, 197, 23)
 
 executeButton.Font = Enum.Font.SourceSans
-executeButton.Text = "â¶ Execute"
+executeButton.Text = "▶ Execute"
 executeButton.TextColor3 = Color3.new(1, 1, 1)
 
 executeButton.Size = UDim2.fromScale(0.2, 0.15)
