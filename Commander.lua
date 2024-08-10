@@ -62,11 +62,23 @@ local frame = Instance.new("Frame")
 frame.BackgroundTransparency = 1
 frame.Size = UDim2.fromScale(1, 1)
 
-local codeBox = Instance.new("TextBox")
-codeBox.Position = UDim2.new(0.2, 4, 0, 4)
-codeBox.Size = UDim2.new(0.8, -8, 0.8, -8)
+local codeBoxFrame = Instance.new("ScrollingFrame")
 
-codeBox.BackgroundColor3 = Color3.new()
+codeBoxFrame.Position = UDim2.new(0.2, 4, 0, 4)
+codeBoxFrame.Size = UDim2.new(0.8, -8, 0.8, -8)
+
+codeBoxFrame.ClipsDescendants = true
+codeBoxFrame.BackgroundTransparency = 1
+codeBoxFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+codeBoxFrame.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
+codeBoxFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
+codeBoxFrame.ScrollBarThickness = 4
+codeBoxFrame.CanvasSize = UDim2.new()
+
+codeBoxFrame.Parent = frame
+
+local codeBox = Instance.new("TextBox")
+
 codeBox.TextColor3 = Color3.new(1, 1, 1)
 codeBox.TextSize = 18
 
@@ -74,8 +86,11 @@ codeBox.Font = Enum.Font.RobotoMono
 codeBox.PlaceholderText = ""
 codeBox.Text = ""
 
+codeBox.Size = UDim2.fromScale(1, 1)
+
 codeBox.TextXAlignment = Enum.TextXAlignment.Left
 codeBox.TextYAlignment = Enum.TextYAlignment.Top
+codeBox.AutomaticSize = Enum.AutomaticSize.XY
 
 codeBox.ClearTextOnFocus = false
 codeBox.MultiLine = true
@@ -96,7 +111,7 @@ do
 end
 
 table.insert(colourSyncTargets, codeBox)
-codeBox.Parent = frame
+codeBox.Parent = codeBoxFrame
 
 do
 	local warningLabel = Instance.new("TextLabel")
