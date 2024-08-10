@@ -1,6 +1,7 @@
 --!strict
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
+local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 
 local isTestMode = not RunService:IsEdit()
@@ -24,15 +25,46 @@ widget.Title = "Commander"
 widget.ResetOnSpawn = false
 widget.Enabled = false
 
+local executeButton: TextButton
 local colourSyncTargets: {GuiObject | UIStroke} = {}
+
+-- This is not a comprehensive function and it should be updated if new ui objects are added
+local function syncOne(v: GuiObject | UIStroke, theme: any, noSyncPrimarySelection: boolean?)
+	if v:IsA("UIStroke") then
+		v.Color = theme:GetColor(Enum.StudioStyleGuideColor.Border)
+	elseif v:IsA("GuiObject") then
+		if v == executeButton and v:IsA("TextButton") then
+			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Disabled)
+			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Disabled)
+		elseif v:IsA("TextBox") then
+			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.InputFieldBackground)
+			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+			v.PlaceholderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.SubText)
+		elseif v:IsA("TextLabel") then
+			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
+		elseif v:IsA("TextButton") then
+			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Button)
+			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ButtonText)
+		else
+			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground)
+		end
+	end
+end
+
+local function syncColours()
+	local theme = settings().Studio.Theme
+	for _, v in colourSyncTargets do
+		syncOne(v, theme)
+	end
+end
 
 local frame = Instance.new("Frame")
 frame.BackgroundTransparency = 1
 frame.Size = UDim2.fromScale(1, 1)
 
 local codeBox = Instance.new("TextBox")
-codeBox.Position = UDim2.fromOffset(4, 4)
-codeBox.Size = UDim2.new(1, -8, 0.8, -8)
+codeBox.Position = UDim2.new(0.2, 4, 0, 4)
+codeBox.Size = UDim2.new(0.8, -8, 0.8, -8)
 
 codeBox.BackgroundColor3 = Color3.new()
 codeBox.TextColor3 = Color3.new(1, 1, 1)
@@ -74,7 +106,7 @@ do
 	warningLabel.TextScaled = true
 
 	warningLabel.Position = UDim2.new(0, 4, 0.825, 0)
-	warningLabel.Size = UDim2.new(0.8, -8, 0.15, -4)
+	warningLabel.Size = UDim2.new(0.55, -8, 0.15, -4)
 
 	warningLabel.BackgroundTransparency = 1
 
@@ -84,7 +116,7 @@ do
 	warningLabel.Parent = frame
 end
 
-local executeButton = Instance.new("TextButton")
+executeButton = Instance.new("TextButton")
 executeButton.BackgroundColor3 = Color3.fromRGB(0, 197, 23)
 
 executeButton.Font = Enum.Font.SourceSans
@@ -114,6 +146,136 @@ do
 end
 
 executeButton.Parent = frame
+
+local presetsFrame = Instance.new("ScrollingFrame")
+
+presetsFrame.ScrollBarThickness = 4
+presetsFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+presetsFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+
+presetsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+presetsFrame.CanvasSize = UDim2.new()
+presetsFrame.Size = UDim2.new(0.2, -8, 0.8, -8)
+presetsFrame.Position = UDim2.fromOffset(4, 4)
+
+do
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.Parent = presetsFrame
+
+	local uiGridLayout = Instance.new("UIGridLayout")
+	uiGridLayout.CellSize = UDim2.fromScale(1, 0.2)
+	uiGridLayout.Parent = presetsFrame
+end
+
+table.insert(colourSyncTargets, presetsFrame)
+presetsFrame.Parent = frame
+
+type Presets = {
+	[string]: string?,
+}
+
+local function getPresets(): Presets
+	local presets = plugin:GetSetting("Presets")
+	if not presets then
+		return {
+			["Hello, World!"] = 'print("Hello, World!")',
+		}
+	end
+	return HttpService:JSONDecode(plugin:GetSetting("Presets"))
+end
+
+local function updatePreset(name: string, code: string?): ()
+	local presets = getPresets()
+	presets[name] = code
+
+	plugin:SetSetting("Presets", HttpService:JSONEncode(presets))
+end
+
+local function loadPreset(name: string): ()
+	local data = getPresets()
+	if not data then
+		return warn("Failed to load preset " .. name)
+	end
+
+	local code = data[name]
+	if not code then
+		return warn("Failed to load preset " .. name)
+	end
+
+	local preset = code
+	codeBox.Text = preset
+end
+
+local function createPresetButton(name: string): ()
+	local button = Instance.new("TextButton")
+	button.Font = Enum.Font.SourceSans
+	button.Text = name
+	
+	button.TextScaled = true
+
+	do
+		local uiCorner = Instance.new("UICorner")
+		uiCorner.Parent = button
+	end
+
+	button.MouseButton1Click:Connect(function()
+		loadPreset(name)
+	end)
+
+	button.MouseButton2Click:Connect(function()
+		updatePreset(name, nil)
+		button:Destroy()
+	end)
+
+	table.insert(colourSyncTargets, button)
+	syncOne(button, settings().Studio.Theme)
+	button.Parent = presetsFrame
+end
+
+local function saveAsPreset(name: string)
+	if not getPresets()[name] then
+		createPresetButton(name)
+	end
+	updatePreset(name, codeBox.Text)
+end
+
+for i in getPresets() do
+	createPresetButton(i)
+end
+
+local saveAs = Instance.new("TextBox")
+saveAs.Font = Enum.Font.SourceSans
+saveAs.Text = ""
+saveAs.PlaceholderText = "Save as..."
+
+saveAs.AnchorPoint = Vector2.new(0, 0.5)
+saveAs.Position = UDim2.new(0.575, -4, 0.9, 0)
+saveAs.Size = UDim2.fromScale(0.2, 0.15)
+saveAs.TextScaled = true
+
+do
+	local uiCorner = Instance.new("UICorner")
+    uiCorner.Parent = saveAs
+
+	local uiPadding = Instance.new("UIPadding")
+	uiPadding.PaddingBottom = UDim.new(0, 5)
+	uiPadding.PaddingTop = UDim.new(0, 5)
+	uiPadding.PaddingLeft = UDim.new(0, 5)
+	uiPadding.PaddingRight = UDim.new(0, 5)
+	uiPadding.Parent = saveAs
+end
+
+table.insert(colourSyncTargets, saveAs)
+saveAs.Parent = frame
+
+saveAs.FocusLost:Connect(function(enterPressed)
+	if not enterPressed or saveAs.Text == "" then
+		return
+	end
+
+	saveAsPreset(saveAs.Text)
+end)
+
 frame.Parent = widget
 
 if isTestMode then
@@ -177,32 +339,6 @@ if not isTestMode then
 			ChangeHistoryService:FinishRecording(recording, if success then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
 		end
 	end)
-end
-
--- This is not a comprehensive function and it should be updated if new ui objects are added
-local function syncOne(v: GuiObject | UIStroke, theme: any, noSyncPrimarySelection: boolean?)
-	if v:IsA("UIStroke") then
-		v.Color = theme:GetColor(Enum.StudioStyleGuideColor.Border)
-	elseif v:IsA("GuiObject") then
-		if v == executeButton and v:IsA("TextButton") then
-			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Button, Enum.StudioStyleGuideModifier.Disabled)
-			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Disabled)
-		elseif v:IsA("TextBox") then
-			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.InputFieldBackground)
-			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
-		elseif v:IsA("TextLabel") then
-			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
-		else
-			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground)
-		end
-	end
-end
-
-local function syncColours()
-	local theme = settings().Studio.Theme
-	for _, v in colourSyncTargets do
-		syncOne(v, theme)
-	end
 end
 
 syncColours()
