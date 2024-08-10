@@ -17,7 +17,7 @@ Converts selected Instance into another class, preserving attributes, tags, desc
 https://create.roblox.com/store/asset/17107089749
 
 ## [Commander - Multi-line command bar](./Commander.lua)
-A simple multi-line command bar, with support for undo and redo.
+A simple multi-line command bar, with support for undo and presets.
 
 Does NOT support syntax highlighting.
 
