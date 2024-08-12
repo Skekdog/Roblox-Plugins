@@ -328,6 +328,9 @@ local function setIcon(imageLabel: ImageLabel)
 	-- unfortunately there doesn't seem to be a way to check if the asset exists. IsLoaded also seems to set to true despite the fact it doesn't exist
 end
 
+-- CSG classes do not work correctly but they would appear as if they should so we catch this
+local invalidClasses = {"UnionOperation", "NegateOperation", "IntersectOperation", "PartOperationAsset"}
+
 for _, class in apiDump do
 	local isDeprecated, isNonBrowsable = false, false
 	if class.Tags then
@@ -342,9 +345,8 @@ for _, class in apiDump do
 			isNonBrowsable = true
 		end
 	end
-	if #class.Members < 1 and class.Name ~= "Folder" then
-		-- Some unimplemented classes are present, don't need them to clog everything up (see MetadataFunctions)
-		-- However Folder matches this criteria, wonder if there are any other such classes?
+
+	if class.Name:sub(1, 18) == "ReflectionMetadata" or table.find(invalidClasses, class.Name) then
 		continue
 	end
 	
