@@ -377,11 +377,8 @@ for _, class in apiDump do
 	end)
 end
 
-local primarySelection: GuiObject = nil
-local function syncOne(v: GuiObject, theme: any, noSyncPrimarySelection: boolean?)
-	if (v == primarySelection) and (not noSyncPrimarySelection) then
-		v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainButton)
-	elseif v:IsA("ImageLabel") then
+local function syncOne(v: GuiObject, theme: any)
+	if v:IsA("ImageLabel") then
 		setIcon(v)
 	elseif v.Name == "Separator" and v.ClassName == "Frame" then
 		v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
@@ -393,14 +390,6 @@ local function syncOne(v: GuiObject, theme: any, noSyncPrimarySelection: boolean
 		(v :: TextLabel).TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 	end
 end
-
--- You can't set a default key?? And even if you are willing to set it manually, you can't use Enter???? Leaving this disabled until defaults are possible.
---plugin:CreatePluginAction("SelectPrimaryConversion", "Select Primary Conversion", "Selects the first choice in the possible conversions.", "rbxassetid://11413691750").Triggered:Connect(function()
---	local result = convert(Selection:Get(), primarySelection.Name)
---	if result then
---		Selection:Set(result)
---	end
---end)
 
 local function syncColours()
 	local theme = settings().Studio.Theme
@@ -440,16 +429,9 @@ local function updateSearch()
 		end
 	end
 	
-	--if primarySelection then
-	--	syncOne(primarySelection, settings().Studio.Theme, true)
-	--end
-	
 	table.sort(visibleElements, function(a, b)
 		return levenshtein(a.Name:lower(), text) < levenshtein(b.Name:lower(), text)
 	end)
-	
-	--primarySelection = visibleElements[1]
-	--syncOne(primarySelection, settings().Studio.Theme)
 	
 	for i, v in visibleElements do
 		v.LayoutOrder = i
