@@ -63,6 +63,7 @@ frame.BackgroundTransparency = 1
 frame.Size = UDim2.fromScale(1, 1)
 
 local codeBoxFrame = Instance.new("ScrollingFrame")
+codeBoxFrame.Name = "CodeScroll"
 
 codeBoxFrame.Position = UDim2.new(0.2, 4, 0, 4)
 codeBoxFrame.Size = UDim2.new(0.8, -8, 0.8, -8)
@@ -78,6 +79,7 @@ codeBoxFrame.CanvasSize = UDim2.new()
 codeBoxFrame.Parent = frame
 
 local codeBox = Instance.new("TextBox")
+codeBox.Name = "Code"
 
 codeBox.TextColor3 = Color3.new(1, 1, 1)
 codeBox.TextSize = 18
@@ -115,6 +117,7 @@ codeBox.Parent = codeBoxFrame
 
 do
 	local warningLabel = Instance.new("TextLabel")
+	warningLabel.Name = "WarningLabel"
 
 	warningLabel.Font = Enum.Font.SourceSans
 	warningLabel.Text = "NOTE: Be careful when using Instance:Destroy(), as it is not possible to undo this! Instead, consider using Instance.Parent = nil."
@@ -132,6 +135,8 @@ do
 end
 
 executeButton = Instance.new("TextButton")
+executeButton.Name = "Execute"
+
 executeButton.BackgroundColor3 = Color3.fromRGB(0, 197, 23)
 
 executeButton.Font = Enum.Font.SourceSans
@@ -163,6 +168,7 @@ end
 executeButton.Parent = frame
 
 local presetsFrame = Instance.new("ScrollingFrame")
+presetsFrame.Name = "Presets"
 
 presetsFrame.ScrollBarThickness = 4
 presetsFrame.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -223,6 +229,8 @@ end
 
 local function createPresetButton(name: string): ()
 	local button = Instance.new("TextButton")
+	button.Name = "Preset_" .. name
+
 	button.Font = Enum.Font.SourceSans
 	button.Text = name
 	
@@ -259,6 +267,8 @@ for i in getPresets() do
 end
 
 local saveAs = Instance.new("TextBox")
+saveAs.Name = "SaveAs"
+
 saveAs.Font = Enum.Font.SourceSans
 saveAs.Text = ""
 saveAs.PlaceholderText = "Save as..."
@@ -295,6 +305,7 @@ frame.Parent = widget
 
 if isTestMode then
 	local warning = Instance.new("TextButton")
+	warning.Name = "TestModeWarningLabel"
 
 	warning.Size = UDim2.fromScale(1, 0.1)
 
