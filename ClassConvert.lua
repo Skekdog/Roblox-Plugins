@@ -322,15 +322,9 @@ local function convert(from: {Instance}, to: string): {Instance}?
 	return newSelections
 end
 
-local function setIcon(imageLabel: ImageLabel)
-	assert(imageLabel.Parent)
-	imageLabel.Image = `rbxasset://studio_svg_textures/Shared/InsertableObjects/{themeName}/Standard/{imageLabel.Parent.Name}@3x.png`
-	-- unfortunately there doesn't seem to be a way to check if the asset exists. IsLoaded also seems to set to true despite the fact it doesn't exist
-end
-
 -- CSG classes do not work correctly but they would appear as if they should so we catch this
 local invalidClasses = {"UnionOperation", "NegateOperation", "IntersectOperation", "PartOperationAsset"}
-
+local superclasses: {[string]: string?} = {}
 for _, class in apiDump do
 	local isDeprecated, isNonBrowsable = false, false
 	if class.Tags then
@@ -359,6 +353,8 @@ for _, class in apiDump do
 	if not canBeCreated then
 		continue
 	end
+
+	superclasses[name] = class.Superclass
 	
 	local result = resultBase:Clone();
 	(result:FindFirstChild("Label") :: TextLabel).Text = name
@@ -375,6 +371,45 @@ for _, class in apiDump do
 			Selection:Set(result)
 		end
 	end)
+end
+
+local function trySetIcon(imageLabel: ImageLabel, icon: string): boolean
+	-- Images do not load until they are visible
+	repeat
+		task.wait()
+	until widget.Enabled and imageLabel.AbsolutePosition.Y > 0 and imageLabel.AbsolutePosition.Y < resultsGrid.AbsoluteSize.Y + resultsGrid.AbsolutePosition.Y - imageLabel.AbsoluteSize.Y
+
+	imageLabel.Image = icon
+
+	local start = os.clock()
+	while not imageLabel.IsLoaded and os.clock() - start < 1 do
+		task.wait()
+	end
+
+	return imageLabel.IsLoaded
+end
+
+local function setIcon(imageLabel: ImageLabel)
+	assert(imageLabel.Parent)
+
+	local class = imageLabel.Parent.Name
+	local path = "rbxasset://studio_svg_textures/Shared/"
+
+	coroutine.wrap(function()
+		local success = trySetIcon(imageLabel, path .. `InsertableObjects/{themeName}/Standard/{class}.png`)
+
+		if not success then
+			if class:sub(-5) == "Value" then -- This is the only one I found that needs to be special-cased
+				success = trySetIcon(imageLabel, path .. `InsertableObjects/{themeName}/Standard/Value@3x.png`)
+			elseif superclasses[class] and superclasses[class] ~= "Instance" then
+				success = trySetIcon(imageLabel, path .. `InsertableObjects/{themeName}/Standard/{superclasses[class]}@3x.png`)
+			end
+			
+			if not success then
+				imageLabel.Image = path .. `Placeholder/{themeName}/Standard/Placeholder@3x.png`
+			end
+		end
+	end)()
 end
 
 local function syncOne(v: GuiObject, theme: any)
