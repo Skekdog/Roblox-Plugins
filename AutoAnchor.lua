@@ -1,4 +1,9 @@
 --!strict
+local RunService = game:GetService("RunService")
+
+if not RunService:IsEdit() then
+    return
+end
 
 local toolbar = plugin:CreateToolbar("Auto-Anchor")
 local enabled = plugin:GetSetting("Enabled")
