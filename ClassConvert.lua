@@ -1,7 +1,8 @@
 --!strict
 
 local RunService = game:GetService("RunService")
-if not RunService:IsServer() then
+if not RunService:IsServer() and not RunService:IsEdit() then
+	-- Read the docs! In team create, IsServer() returns false. So we also need to check IsEdit()
 	return
 end
 
