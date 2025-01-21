@@ -47,6 +47,10 @@ local function syncOne(v: GuiObject | UIStroke, theme: any, noSyncPrimarySelecti
 		elseif v:IsA("TextButton") then
 			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Button)
 			v.TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ButtonText)
+		elseif v:IsA("ScrollingFrame") then
+			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground)
+			v.BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border)
+			v.ScrollBarImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border) -- there is a dedicated ScrollBar colour, but it's no good on light mode.
 		else
 			v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground)
 		end
@@ -77,6 +81,17 @@ codeBoxFrame.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
 codeBoxFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 codeBoxFrame.ScrollBarThickness = 4
 codeBoxFrame.CanvasSize = UDim2.new()
+
+do
+	local uiPadding = Instance.new("UIPadding")
+	uiPadding.PaddingLeft = UDim.new(0, 2)
+	uiPadding.PaddingRight = UDim.new(0, 2)
+	uiPadding.PaddingTop = UDim.new(0, 2)
+	uiPadding.PaddingBottom = UDim.new(0, 2)
+	uiPadding.Parent = codeBoxFrame
+end
+
+table.insert(colourSyncTargets, codeBoxFrame)
 
 codeBoxFrame.Parent = frame
 
@@ -183,6 +198,13 @@ do
 	local uiGridLayout = Instance.new("UIGridLayout")
 	uiGridLayout.CellSize = UDim2.fromScale(1, 0.2)
 	uiGridLayout.Parent = presetsFrame
+
+	local uiPadding = Instance.new("UIPadding")
+	uiPadding.PaddingLeft = UDim.new(0, 2)
+	uiPadding.PaddingTop = UDim.new(0, 2)
+	uiPadding.PaddingRight = UDim.new(0, 2)
+	uiPadding.PaddingBottom = UDim.new(0, 2)
+	uiPadding.Parent = presetsFrame
 end
 
 table.insert(colourSyncTargets, presetsFrame)
@@ -236,6 +258,12 @@ local function createPresetButton(name: string): ()
 	do
 		local uiCorner = Instance.new("UICorner")
 		uiCorner.Parent = button
+
+		local uiStroke = Instance.new("UIStroke")
+		uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		table.insert(colourSyncTargets, uiStroke)
+		syncOne(uiStroke, settings().Studio.Theme)
+		uiStroke.Parent = button
 	end
 
 	button.MouseButton1Click:Connect(function()
@@ -285,6 +313,11 @@ do
 	uiPadding.PaddingLeft = UDim.new(0, 5)
 	uiPadding.PaddingRight = UDim.new(0, 5)
 	uiPadding.Parent = saveAs
+
+	local uiStroke = Instance.new("UIStroke")
+    uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    table.insert(colourSyncTargets, uiStroke)
+    uiStroke.Parent = saveAs
 end
 
 table.insert(colourSyncTargets, saveAs)
