@@ -4,7 +4,9 @@ local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 
-local isTestMode = not RunService:IsEdit()
+if not RunService:IsEdit() then
+	return
+end
 
 local toolbar = plugin:CreateToolbar("Commander")
 local button = toolbar:CreateButton("Commander", "Opens the Commander menu", "rbxassetid://18845886149")
@@ -147,11 +149,6 @@ executeButton.Size = UDim2.fromScale(0.2, 0.15)
 executeButton.Position = UDim2.new(0.8, -4, 0.9, 0)
 executeButton.AnchorPoint = Vector2.new(0, 0.5)
 executeButton.TextScaled = true
-
-if isTestMode then
-	table.insert(colourSyncTargets, executeButton)
-	executeButton.AutoButtonColor = false
-end
 
 do
     local uiCorner = Instance.new("UICorner")
@@ -303,33 +300,6 @@ end)
 
 frame.Parent = widget
 
-if isTestMode then
-	local warning = Instance.new("TextButton")
-	warning.Name = "TestModeWarningLabel"
-
-	warning.Size = UDim2.fromScale(1, 0.1)
-
-	warning.TextScaled = true
-	warning.Font = Enum.Font.SourceSans
-
-	warning.TextColor3 = Color3.new(1, 1, 1)
-	warning.BackgroundColor3 = Color3.fromRGB(255, 179, 0)
-	warning.BorderSizePixel = 0
-
-	warning.Text = "NOTE: Running in test mode, execution will not be possible. Instead you can copy-paste code into the standard Studio command bar. Undo will not be available."
-
-	local uiPadding = Instance.new("UIPadding")
-	uiPadding.PaddingBottom = UDim.new(0.05, 0)
-	uiPadding.PaddingTop = UDim.new(0.05, 0)
-	uiPadding.Parent = warning
-
-	warning.Parent = frame
-
-	warning.Activated:Connect(function()
-		warning.Parent = nil
-	end)
-end
-
 button.Click:Connect(function()
 	widget.Enabled = not widget.Enabled
 	if widget.Enabled then
@@ -337,35 +307,32 @@ button.Click:Connect(function()
 	end
 end)
 
-if not isTestMode then
-	executeButton.MouseButton1Click:Connect(function()
-		local recording: string?
-		if not isTestMode then
-			recording = ChangeHistoryService:TryBeginRecording("Execute commander code")
-			if not recording then
-				return warn("Unable to create undo waypoint, possibly due to another execution already in progress. Execution aborted.")
-			end
+executeButton.MouseButton1Click:Connect(function()
+	local recording: string?
+	
+	recording = ChangeHistoryService:TryBeginRecording("Execute commander code")
+	if not recording then
+		return warn("Unable to create undo waypoint, possibly due to another execution already in progress. Execution aborted.")
+	end
+
+	local code = codeBox.Text
+
+	local success, result = pcall(function(): (any, any)
+		local exec, err = loadstring(code)
+		if not exec then
+			return error(err or "Unknown error occured")
 		end
-	
-		local code = codeBox.Text
-	
-		local success, result = pcall(function(): (any, any)
-			local exec, err = loadstring(code)
-			if not exec then
-				return error(err or "Unknown error occured")
-			end
-			return exec()
-		end)
-	
-		if not success then
-			warn(result)
-		end
-	
-		if recording and not isTestMode then
-			ChangeHistoryService:FinishRecording(recording, if success then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
-		end
+		return exec()
 	end)
-end
+
+	if not success then
+		warn(result)
+	end
+
+	if recording then
+		ChangeHistoryService:FinishRecording(recording, if success then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
+	end
+end)
 
 syncColours()
 settings().Studio.ThemeChanged:Connect(syncColours)
