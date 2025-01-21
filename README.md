@@ -25,3 +25,9 @@ A simple multi-line command bar, with support for undo and presets.
 Does NOT support syntax highlighting.
 
 Upload to Creator Store was moderated.
+
+## [Character Load](./CharacterLoad.lua)
+
+A simple tool to insert a player's character in either R6 or R15. Supports both username and user ID.
+
+[Creator Store](https://create.roblox.com/store/asset/119621554198721)
