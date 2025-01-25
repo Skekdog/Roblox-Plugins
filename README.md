@@ -31,3 +31,10 @@ Upload to Creator Store was moderated.
 A simple tool to insert a player's character in either R6 or R15. Supports both username and user ID.
 
 [Creator Store](https://create.roblox.com/store/asset/119621554198721)
+
+## [Bulk Save](./BulkSave.lua)
+
+A simple tool to individually save all selected Instances with the filename set to their name.
+Mostly just a time-saver.
+
+[Creator Store](https://create.roblox.com/store/asset/110526351788712)
