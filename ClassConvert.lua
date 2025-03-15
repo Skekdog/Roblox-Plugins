@@ -9,6 +9,7 @@ end
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local HTTPService = game:GetService("HttpService")
 local Selection = game:GetService("Selection")
+local StudioService = game:GetService("StudioService")
 
 local toolbar: PluginToolbar = plugin:CreateToolbar("Class Convert")
 local button = toolbar:CreateButton("Convert", "Opens the menu for selecting a new class", "rbxassetid://18845890189")
@@ -16,8 +17,6 @@ button.ClickableWhenViewportHidden = true
 
 local showDeprecated = plugin:GetSetting("ShowDeprecated") or false
 local showNonBrowsable = plugin:GetSetting("ShowNonBrowsable") or false
-
-local themeName = "Dark"
 
 local widget = plugin:CreateDockWidgetPluginGui("ClassConvert", DockWidgetPluginGuiInfo.new(
 	Enum.InitialDockState.Float,
@@ -374,48 +373,13 @@ for _, class in apiDump do
 	end)
 end
 
-local function trySetIcon(imageLabel: ImageLabel, icon: string): boolean
-	-- Images do not load until they are visible
-	repeat
-		task.wait()
-	until widget.Enabled and imageLabel.AbsolutePosition.Y > 0 and imageLabel.AbsolutePosition.Y < resultsGrid.AbsoluteSize.Y + resultsGrid.AbsolutePosition.Y - imageLabel.AbsoluteSize.Y
-
-	imageLabel.Image = icon
-
-	local start = os.clock()
-	while not imageLabel.IsLoaded and os.clock() - start < 1 do
-		task.wait()
-	end
-
-	return imageLabel.IsLoaded
-end
-
-local function setIcon(imageLabel: ImageLabel)
-	assert(imageLabel.Parent)
-
-	local class = imageLabel.Parent.Name
-	local path = "rbxasset://studio_svg_textures/Shared/"
-
-	coroutine.wrap(function()
-		local success = trySetIcon(imageLabel, path .. `InsertableObjects/{themeName}/Standard/{class}.png`)
-
-		if not success then
-			if class:sub(-5) == "Value" then -- This is the only one I found that needs to be special-cased
-				success = trySetIcon(imageLabel, path .. `InsertableObjects/{themeName}/Standard/Value@3x.png`)
-			elseif superclasses[class] and superclasses[class] ~= "Instance" then
-				success = trySetIcon(imageLabel, path .. `InsertableObjects/{themeName}/Standard/{superclasses[class]}@3x.png`)
-			end
-			
-			if not success then
-				imageLabel.Image = path .. `Placeholder/{themeName}/Standard/Placeholder@3x.png`
-			end
-		end
-	end)()
-end
-
 local function syncOne(v: GuiObject, theme: any)
 	if v:IsA("ImageLabel") then
-		setIcon(v)
+		local parent = assert(v.Parent, "ImageLabel has no parent")
+		local classIcon = StudioService:GetClassIcon(parent.Name)
+		v.Image = classIcon.Image
+		v.ImageRectOffset = classIcon.ImageRectOffset
+		v.ImageRectSize = classIcon.ImageRectSize
 	elseif v.Name == "Separator" and v.ClassName == "Frame" then
 		v.BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 	elseif v.Name == "Results" and v.ClassName == "ScrollingFrame" then
@@ -429,11 +393,6 @@ end
 
 local function syncColours()
 	local theme = settings().Studio.Theme
-	if tonumber("0x"..theme:GetColor(Enum.StudioStyleGuideColor.MainBackground):ToHex()) <= 8355711 then -- 8355711 is the base 10 value of 127, 127, 127
-		themeName = "Dark"
-	else
-		themeName = "Light"
-	end
 	for _, v in colourSyncTargets do
 		syncOne(v, theme)
 	end
