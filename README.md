@@ -16,6 +16,7 @@ Automatically anchors any newly-added descendant of Workspace. Can be toggled on
 ## [Class Convert](./ClassConvert.lua)
 
 Converts selected Instance into another class, preserving attributes, tags, descendants, and applicable properties.
+Class Convert V2 can be found [here](https://github.com/Skekdog/ClassConvert); HOWEVER, FFLAGS MUST BE SET TO USE THAT PLUGIN. Class Convert V1 will continue to be maintained until ReflectionService is fully enabled.
 
 [Creator Store](https://create.roblox.com/store/asset/17107089749)
 
