@@ -1,3 +1,10 @@
+# Plugins have moved to their own repositories!
+- [Commander](https://github.com/Skekdog/Commander)
+- [Auto Anchor](https://github.com/Skekdog/AutoAnchor)
+- [Bulk Save](https://github.com/Skekdog/BulkSave)
+- [Class Convert](https://github.com/Skekdog/ClassConvertV1)
+- [Character Load](https://github.com/Skekdog/CharacterLoad)
+
 # Plugins
 
 Source code of some of my type-safe published Roblox Studio plugins.
